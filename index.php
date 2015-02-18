@@ -1,14 +1,24 @@
 <?php
-/**
- * Fetch content directly or from a dump file?
- */
+// Fetch content directly or from a dump file?
 //$json = file_get_contents('http://m.deredactie.be/client/mvc/contents?channel=vrtnieuws');
 $json = file_get_contents('dumpfile.json');
 $data = json_decode($json,true);
 
-/**
- * Generate quick & dirty RSS feed
- */
+// Deduce our own array
+$items = array();
+foreach ( $data['rows'][0]['bundle']['content'] as $id => $details ) {
+    $items[] = array(
+        'iso8601date'   => $details['publicationDate'],
+        'date'          => date( DATE_RFC2822,strtotime( $details['publicationDate'] ) ),
+        'url'           => "http://m.deredactie.be/#!/snippet/" . $details['id'],
+        'title'         => strip_tags(html_entity_decode( $details['content'][0]['title'], ENT_QUOTES, "utf-8" ) ),
+        'desc'          => strip_tags(html_entity_decode( $details['content'][0]['text'] , ENT_QUOTES, "utf-8" ) ),
+        'creator'       => html_entity_decode( $details['author'], ENT_QUOTES, "utf-8" )
+    );
+}
+usort($items, 'sortByIso8601dateDesc');
+
+// Generate quick & dirty RSS feed
 $copyright = "vrt © " . date('Y');
 $pubDate = date(DATE_RFC2822);
 $rssStart = <<<EOF
@@ -37,15 +47,21 @@ EOF;
 
 header('Content-Type: application/xml; charset=utf-8');
 print $rssStart;
-foreach ( $data['rows'][0]['bundle']['content'] as $id => $details ) {
+foreach ( $items as $index => $item ) {
     print "
         <item>
-            <guid>"         . "http://m.deredactie.be/#!/snippet/" . $details['id']                                 . "</guid>
-            <link>"         . "http://m.deredactie.be/#!/snippet/" . $details['id']                                 . "</link>
-            <title>"        . strip_tags(html_entity_decode($details['content'][0]['title'], ENT_QUOTES, "utf-8"))  . "</title>
-            <description>"  . strip_tags(html_entity_decode($details['content'][0]['text'] , ENT_QUOTES, "utf-8"))  . "</description>
-            <dc:creator>"   . $details['author']                                                                    . "</dc:creator>
-            <pubDate>"      . date(DATE_RFC2822,strtotime( $details['publicationDate'] ))                           . "</pubDate>
+            <guid>"         . $item['url']       . "</guid>
+            <link>"         . $item['url']       . "</link>
+            <title>"        . $item['title']     . "</title>
+            <description>"  . $item['desc']      . "</description>
+            <dc:creator>"   . $item['creator']   . "</dc:creator>
+            <pubDate>"      . $item['date']      . "</pubDate>
         </item>\n";
 }
 print $rssEnd;
+
+
+// for usort
+function sortByIso8601dateDesc($a, $b) {
+    return strcmp( $b['iso8601date'], $a['iso8601date'] );
+}
