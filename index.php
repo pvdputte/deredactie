@@ -1,4 +1,8 @@
 <?php
+// Link to m.deredactie.be or an alternative?
+$urlPrefix = "http://m.deredactie.be/#!/snippet/";
+//$urlPrefix = "http://futtta.be/redactie/?url=http://m.deredactie.be/client/mvc/contents/ContentBundle/";
+
 // Fetch content directly or from a dump file?
 //$json = file_get_contents('http://m.deredactie.be/client/mvc/contents?channel=vrtnieuws');
 $json = file_get_contents('dumpfile.json');
@@ -10,9 +14,9 @@ foreach ( $data['rows'][0]['bundle']['content'] as $id => $details ) {
     $items[] = array(
         'iso8601date'   => $details['publicationDate'],
         'date'          => date( DATE_RFC2822,strtotime( $details['publicationDate'] ) ),
-        'url'           => "http://m.deredactie.be/#!/snippet/" . $details['id'],
-        'title'         => strip_tags(html_entity_decode( $details['content'][0]['title'], ENT_QUOTES, "utf-8" ) ),
-        'desc'          => strip_tags(html_entity_decode( $details['content'][0]['text'] , ENT_QUOTES, "utf-8" ) ),
+        'url'           => $urlPrefix . $details['id'],
+        'title'         => str_replace('&', '&amp;', strip_tags(html_entity_decode( $details['content'][0]['title'], ENT_QUOTES, "utf-8" ) ) ),
+        'desc'          => str_replace('&', '&amp;', strip_tags(html_entity_decode( $details['content'][0]['text'] , ENT_QUOTES, "utf-8" ) ) ),
         'creator'       => html_entity_decode( $details['author'], ENT_QUOTES, "utf-8" )
     );
 }
