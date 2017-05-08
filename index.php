@@ -1,7 +1,7 @@
 <?php
 // Link to m.deredactie.be or an alternative?
 $urlPrefix = "http://m.deredactie.be/#!/snippet/";
-//$urlPrefix = "http://futtta.be/redactie/?url=http://m.deredactie.be/client/mvc/contents/ContentBundle/";
+//$urlPrefix = "http://futtta.be/redactie/?channel=redactie&url=http://csclient.vrt.be/client/mvc/contents/ContentBundle/";
 
 // Fetch content directly or from a dump file?
 //$json = file_get_contents('http://m.deredactie.be/client/mvc/contents?channel=vrtnieuws');
